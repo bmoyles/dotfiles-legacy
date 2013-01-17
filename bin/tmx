@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+SESSION=${USER}
+WINDOWS=10
+
+tmux has-session -t ${SESSION} 2>/dev/null && tmux attach -d -t ${SESSION} && exit
+tmux new-session -d -s ${SESSION}
+
+[ -e /etc/redhat-release ] && \
+    tmux set -t ${SESSION} default-terminal "screen"
+
+for c in $(seq ${WINDOWS}); do
+    tmux neww -t ${SESSION} -a
+done
+tmux select-window -t ${SESSION}:0
+tmux attach -d -t ${SESSION}
+
+# vim:filetype=sh ts=4 sw=4 sts=4 et

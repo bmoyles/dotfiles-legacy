@@ -1,0 +1,19 @@
+# reference our dotfiles for later use
+export DOTFILES=${HOME}/.dotfiles
+export ZSH=${DOTFILES}
+
+# load up default paths if possible
+if [[ -e /etc/paths ]]; then
+    path=( $(</etc/paths) )
+else
+    path=( /usr/local/bin /usr/bin /bin /usr/local/sbin /usr/sbin /sbin )
+fi
+
+# load up default manpaths if possible
+if [[ -e /etc/manpaths ]]; then
+    manpath=( $(</etc/manpaths) )
+else
+    manpath=( /usr/local/share/man /usr/share/man )
+fi
+
+# vim: filetype=zsh:ts=4:sw=4:expandtab
