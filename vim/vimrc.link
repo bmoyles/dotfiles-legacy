@@ -2,66 +2,53 @@
 runtime bundle/pathogen/autoload/pathogen.vim
 call pathogen#infect()
 
+let pathsep = '/'
+let vim_home = $HOME . pathsep . '.vim'
+let backup_folder = vim_home . pathsep . "backup"
+
+"" General Options
 " turn on filetype detection, loading plugins for filetypes, and loading indent files for filetypes
 filetype plugin indent on
+syntax on   " enable syntax highlighting
+set nocompatible " drop vi compat mode
 
-" enable syntax highlighting
-syntax on
-
-" drop vi compat mode
-set nocompatible
-
-" force 256-color terminal
+" colors and terminal
 set t_Co=256
-
-" Default color scheme
 set background=dark
 color base16-tomorrow
-
-" disable local exrc/vimrc foo
-set noexrc
-
-" switch the leader to something more reachable
-let mapleader = ","
-
-" enable line numbers
+set noexrc " disable local exrc/vimrc foo
+let mapleader = "," " switch the leader to something more reachable
+" enable line numbers but allow them to be easily toggled
 set number
-" but allow them to be easily toggled
 nmap <C-N><C-N> :set invnumber<CR>
-
-" enhance backspace
-set backspace=indent,eol,start
-
+set backspace=indent,eol,start " enhance backspace
 " show vim status bar and ruler
 set laststatus=2
 set ruler
-
-" stay consistent
 set encoding=utf-8
-
 " Whitespace stuff
 set nowrap " don't wrap lines
 set tabstop=4 " a tab should be four spaces
 set shiftwidth=4 " indents should also use 4 space base
 set softtabstop=4 " to be safe, soft tabs at 4 too
 set expandtab " no tabs!
-
+set smarttab
 " highlighting unprintables
 set list listchars=tab:\ \ ,trail:·
-
 " Searching
 set nohlsearch " don't do the highlight search thing after we've searched
 set incsearch " but please highlight search as we type
 set ignorecase " case insensitive
 set smartcase " unless we look like we want case-sensitive
-
 " Use modeline overrides
 set modeline
 set modelines=3
-
 " Directories for swp files
-set backupdir=~/.vim/backup
-set directory=~/.vim/backup
+if !isdirectory(backup_folder)
+    call mkdir(backup_folder, "p")
+endif
+let backupdir = backup_folder
+let directory = &backupdir
 
 " Show (partial) command in the status line
 set showcmd
