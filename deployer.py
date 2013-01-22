@@ -67,8 +67,8 @@ def install(links, main_args, *args, **kwargs):
                 else:
                     log.info("Removing file or symlink {}".format(dest))
                     os.remove(dest)
-            log.info("Symlinking {} to {}".format(link, dest))
-            os.symlink(link, dest)
+        log.info("Symlinking {} to {}".format(link, dest))
+        os.symlink(link, dest)
 
 
 def uninstall(links, main_args, *args, **kwargs):
