@@ -61,9 +61,11 @@ def install(links, main_args, *args, **kwargs):
                 backup(dest)
             else:
                 log.info("Removing existing {}".format(dest))
-                if os.path.isdir(dest):
+                if os.path.isdir(dest) and not os.path.islink(dest):
+                    log.info("Recursivly removing {}".format(dest))
                     shutil.rmtree(dest, ignore_errors=True)
                 else:
+                    log.info("Removing file or symlink {}".format(dest))
                     os.remove(dest)
             log.info("Symlinking {} to {}".format(link, dest))
             os.symlink(link, dest)
