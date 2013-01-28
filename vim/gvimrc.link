@@ -1,0 +1,6 @@
+set guifont=Source\ Code\ Pro:h16
+" default width and height for new windows
+set lines=55
+set columns=132
+set guioptions-=T " turn off toolbar
+set guioptions+=a " enable copy-on-select w/ system clipboard

@@ -47,8 +47,8 @@ set modelines=3
 if !isdirectory(backup_folder)
     call mkdir(backup_folder, "p")
 endif
-let backupdir = backup_folder
-let directory = &backupdir
+let &backupdir = backup_folder
+let &directory = &backupdir
 
 " Show (partial) command in the status line
 set showcmd

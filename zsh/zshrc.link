@@ -1,19 +1,40 @@
-# reference our dotfiles for later use
-export DOTFILES=${HOME}/.dotfiles
-export ZSH=${DOTFILES}
+export DOTFILES=${HOME}/dotfiles
+export DOTLOCAL=${HOME}/.local
+export ZSH=${DOTFILES}/zsh
 
-# load up default paths if possible
-if [[ -e /etc/paths ]]; then
-    path=( $(</etc/paths) )
-else
-    path=( /usr/local/bin /usr/bin /bin /usr/local/sbin /usr/sbin /sbin )
+# flavors allow for a distro-specific hierarchy
+# config.zsh == commonly sourced
+# config.$OS.zsh == commonly sourced by OS
+# config.$OS.$DISTRO.zsh == commonly sourced by distro (to deal with Linux distro differences)
+OS=$(uname)
+if [[ ${OS} == "Linux" ]]
+then
+    if [[ -e /etc/redhat-release ]]
+    then
+        DISTRO="rhel"
+    elif
+        [[ -e /etc/debian_version ]]
+    then
+        DISTRO="deb"
+    fi
+fi
+flavors=( "" ${OS:+${OS}.} ${DISTRO:+${DISTRO}.} )
+
+nonint_configs=( config env path )
+for config in ${ZSH}/${^nonint_configs}.${^flavors}zsh(N)
+do
+    source ${config}
+done
+
+int_configs=( prompt aliases funcs comp zle )
+if [[ -o interactive ]]
+then
+    for config in ${ZSH}/${^int_configs}.${^flavors}zsh(N)
+    do
+        source ${config}
+    done
 fi
 
-# load up default manpaths if possible
-if [[ -e /etc/manpaths ]]; then
-    manpath=( $(</etc/manpaths) )
-else
-    manpath=( /usr/local/share/man /usr/share/man )
-fi
+[[ -e ${DOTLOCAL}/zshrc ]] && source ${DOTLOCAL}/zshrc
 
 # vim: filetype=zsh:ts=4:sw=4:expandtab

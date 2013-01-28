@@ -109,21 +109,6 @@ def main():
     log.info("Processing links")
     args.func(links, args)
 
-#    for link in links:
-#        log.info("Processing link: {0}".format(link))
-#        linkname = '.' + os.path.basename(link).rstrip(LINKABLE)
-#        log.info("Link name is {}".format(linkname))
-#        dest = os.path.join(DEST, linkname)
-#        log.info("Looking for existing {}".format(dest))
-#        if os.path.exists(dest):
-#            log.info("Found existing {}".format(dest))
-#            if os.path.isfile(dest):
-#                log.info("Existing {} is a file".format(dest))
-#            elif os.path.islink(dest):
-#                log.info("Existing {} is a symlink".format(dest))
-#            elif os.path.isdir(dest):
-#                log.info("Existing {} is a directory".format(dest))
-
 
 if __name__ == '__main__':
     sys.exit(main())
