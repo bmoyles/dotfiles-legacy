@@ -11,15 +11,33 @@ import sys
 
 SCRIPT = os.path.abspath(__file__)
 SCRIPT_PATH = os.path.dirname(SCRIPT)
+
 LINKABLE = '.link'
 EXCLUDE_DIRS = ('.git',)
 BACKUP_EXT = '.dotbackup'
-
 DEST = os.environ['HOME']
+DOTRC = os.path.join(DEST, '.dotrc')
+
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+log_format = '%(asctime)s :: [%(levelname)s] :: [%(filename)s(%(lineno)s):%(funcName)s] :: %(message)s'
+logging.basicConfig(level=logging.INFO, format=log_format)
+
+
+def add_dotrc():
+    log.info('Configuring dotfiles location ({}) in dotrc ({})'.format(SCRIPT_PATH, DOTRC))
+    if os.path.exists(DOTRC):
+        log.warn('File exists: {}, overwriting'.format(DOTRC))
+    with open(DOTRC, 'w') as dotrc:
+        dotrc.write('DOTFILES="{}"\n'.format(SCRIPT_PATH))
+
+
+def remove_dotrc():
+    log.info('Removing dotfiles configuration file ({})'.format(DOTRC))
+    if not os.path.exists(DOTRC):
+        log.info('Dotfiles configuration file {} not found'.format(DOTRC))
+        return
+    os.remove(DOTRC)
 
 
 def find_links(path=None):
@@ -69,6 +87,7 @@ def install(links, main_args, *args, **kwargs):
                     os.remove(dest)
         log.info("Symlinking {} to {}".format(link, dest))
         os.symlink(link, dest)
+    add_dotrc()
 
 
 def uninstall(links, main_args, *args, **kwargs):
@@ -84,6 +103,7 @@ def uninstall(links, main_args, *args, **kwargs):
         if os.path.exists(backup) and not(os.path.exists(filename)):
             log.info("Backup {} found, moving to {}".format(backup, filename))
             os.rename(backup, filename)
+    remove_dotrc()
 
 
 def parse_args():
