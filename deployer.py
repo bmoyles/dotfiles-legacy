@@ -9,15 +9,23 @@ import shutil
 import sys
 
 
-SCRIPT = os.path.abspath(__file__)
-SCRIPT_PATH = os.path.dirname(SCRIPT)
+script = os.path.abspath(__file__)
+script_path = os.path.dirname(script)
 
-LINKABLE = '.link'
-EXCLUDE_DIRS = ('.git',)
-BACKUP_EXT = '.dotbackup'
-DEST = os.environ['HOME']
-DOTRC = os.path.join(DEST, '.dotrc')
-
+link_extension = '.link'
+backup_extension = '.dotbackup'
+target_path = os.environ['HOME']
+dotfiles_config = os.path.join(target_path, '.dotrc')
+# directories we want to avoid walking
+exclude_dirs = set('.git', )
+# link names that we only want symlinked on specific platforms
+platform_links= {
+    'darwin': (
+        'osx.link',
+    ),
+    'linux2': (
+    ),
+}
 
 log = logging.getLogger(__name__)
 log_format = '%(asctime)s :: [%(levelname)s] :: [%(filename)s(%(lineno)s):%(funcName)s] :: %(message)s'
@@ -25,38 +33,54 @@ logging.basicConfig(level=logging.INFO, format=log_format)
 
 
 def add_dotrc():
-    log.info('Configuring dotfiles location ({}) in dotrc ({})'.format(SCRIPT_PATH, DOTRC))
-    if os.path.exists(DOTRC):
-        log.warn('File exists: {}, overwriting'.format(DOTRC))
-    with open(DOTRC, 'w') as dotrc:
-        dotrc.write('DOTFILES="{}"\n'.format(SCRIPT_PATH))
+    log.info('Configuring dotfiles location ({}) in dotrc ({})'.format(script_path, dotfiles_config))
+    if os.path.exists(dotfiles_config):
+        log.warn('File exists: {}, overwriting'.format(dotfiles_config))
+    with open(dotfiles_config, 'w') as dotrc:
+        dotrc.write('DOTFILES="{}"\n'.format(script_path))
 
 
 def remove_dotrc():
-    log.info('Removing dotfiles configuration file ({})'.format(DOTRC))
-    if not os.path.exists(DOTRC):
-        log.info('Dotfiles configuration file {} not found'.format(DOTRC))
+    log.info('Removing dotfiles configuration file ({})'.format(dotfiles_config))
+    if not os.path.exists(dotfiles_config):
+        log.info('Dotfiles configuration file {} not found'.format(dotfiles_config))
         return
-    os.remove(DOTRC)
+    os.remove(dotfiles_config)
+
+
+def platform_link_excludes():
+    """
+    Returns a set of link names to exclude from symlinking on this platform.
+    We look at our platforms (platform_links.keys()), filter out sys.platform from
+    that list, and then create a flattened set of files for the remaining keys in
+    the platform_links dict
+    """
+    other_platforms = set(platform_links.keys()) - set(sys.platform)
+    excludes = set([exclusion for platform in other_platforms for exclusion in platform_links[platform]])
+    log.info('Detected platform: {}. Not linking: {}'.format(sys.platform, str(excludes)))
+    return excludes
 
 
 def find_links(path=None):
     links = set()
+    link_excludes = platform_link_excludes()
+
     for (root, dirs, files) in os.walk(path):
-        dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
-        dir_links = [os.path.join(root, d) for d in dirs if d.endswith(LINKABLE)]
-        file_links = [os.path.join(root, f) for f in files if f.endswith(LINKABLE)]
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        dir_links = [os.path.join(root, d) for d in dirs if d.endswith(link_extension)]
+        file_links = [os.path.join(root, f) for f in files
+                if f.endswith(link_extension) and f not in link_excludes]
         links.update(dir_links, file_links)
 
         # don't traverse into dirs that are to be linked
-        dirs[:] = [d for d in dirs if not d.endswith(LINKABLE)]
+        dirs[:] = [d for d in dirs if not d.endswith(link_extension)]
     return links
 
 
 def backup(path=None):
     if path is None:
         return
-    backup_path = path + BACKUP_EXT
+    backup_path = path + backup_extension
     log.info("Backing up {} to {}".format(path, backup_path))
     if os.path.exists(backup_path):
         log.info("Clobbering old backup")
@@ -71,8 +95,8 @@ def install(links, main_args, *args, **kwargs):
     log.info("Executing install action")
     for link in links:
         log.info("Processing link: {}".format(link))
-        destfile = "." + os.path.basename(link).rstrip(LINKABLE)
-        dest = os.path.join(DEST, destfile)
+        destfile = "." + os.path.basename(link).rstrip(link_extension)
+        dest = os.path.join(target_path, destfile)
         if os.path.exists(dest):
             log.info("Destination exists: {}".format(dest))
             if main_args.backup:
@@ -92,11 +116,11 @@ def install(links, main_args, *args, **kwargs):
 
 def uninstall(links, main_args, *args, **kwargs):
     log.info("Executing uninstall action")
-    files = ["." + os.path.basename(link).rstrip(LINKABLE) for link in links]
+    files = ["." + os.path.basename(link).rstrip(link_extension) for link in links]
     for filename in files:
         log.info("Processing file: {}".format(filename))
-        filename = os.path.join(DEST, filename)
-        backup = filename + BACKUP_EXT
+        filename = os.path.join(target_path, filename)
+        backup = filename + backup_extension
         if os.path.islink(filename):
             log.info("File {} is symlink, removing".format(filename))
             os.remove(filename)
@@ -122,9 +146,9 @@ def parse_args():
 
 def main():
     args = parse_args()
-    log.info("Script: [{0}] Dotfile root: [{1}]".format(SCRIPT, SCRIPT_PATH))
+    log.info("Script: [{0}] Dotfile root: [{1}]".format(script, script_path))
     log.info("Gathering links")
-    links = find_links(SCRIPT_PATH)
+    links = find_links(script_path)
 
     log.info("Processing links")
     args.func(links, args)
