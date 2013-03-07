@@ -17,7 +17,7 @@ backup_extension = '.dotbackup'
 target_path = os.environ['HOME']
 dotfiles_config = os.path.join(target_path, '.dotrc')
 # directories we want to avoid walking
-exclude_dirs = set('.git', )
+exclude_dirs = set(('.git',))
 # link names that we only want symlinked on specific platforms
 platform_links= {
     'darwin': (
