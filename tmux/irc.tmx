@@ -1,1 +1,1 @@
-tmux new-session -d -s ${session} weechat
+tmux new-session -d -s ${session} weechat-curses
