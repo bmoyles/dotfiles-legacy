@@ -1,0 +1,3 @@
+tmux split-window -v -p 50 -t general:0
+tmux select-window -t general:0
+tmux select-pane -t general:0.0

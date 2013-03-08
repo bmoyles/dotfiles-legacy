@@ -1,19 +1,37 @@
 #!/bin/bash
 
+tmux_home=${DOTFILES}/tmux
 
-SESSION=${USER}
-WINDOWS=10
+create_or_attach() {
+    local session=$1
 
-tmux has-session -t ${SESSION} 2>/dev/null && tmux attach -d -t ${SESSION} && exit
-tmux new-session -d -s ${SESSION}
+    if ! tmux has-session -t ${session} 2>/dev/null; then
+        session_config=${tmux_home}/${session}.tmx
+        if [[ -f ${session_config} ]]; then
+            source ${session_config}
+        else
+            tmux new-session -d -s ${session}
+        fi
+    fi
+    tmux attach -d -t ${session}
+}
 
-[ -e /etc/redhat-release ] && \
-    tmux set -t ${SESSION} default-terminal "screen"
+main() {
+    local session=general
+    if [[ $# -gt 0 ]]; then
+        case $1 in
+            list|ls)
+                tmux list-sessions
+                exit 0
+                ;;
+            *)
+                session=$1
+                ;;
+        esac
+    fi
+    create_or_attach ${session}
+}
 
-for c in $(seq ${WINDOWS}); do
-    tmux neww -t ${SESSION} -a
-done
-tmux select-window -t ${SESSION}:0
-tmux attach -d -t ${SESSION}
+main "$@"
 
 # vim:filetype=sh ts=4 sw=4 sts=4 et

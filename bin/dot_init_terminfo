@@ -1,0 +1,5 @@
+#!/bin/bash
+
+[[ -f ${HOME}/.dotrc ]] && source ${HOME}/.dotrc
+
+tic -x ${DOTFILES:-${HOME}/.dotfiles}/terminfo/screen-256color.terminfo

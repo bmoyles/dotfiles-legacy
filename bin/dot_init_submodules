@@ -1,0 +1,8 @@
+#!/bin/bash
+
+[[ -f ${HOME}/.dotrc ]] && source ${HOME}/.dotrc
+
+pushd ${DOTFILES:-${HOME}/.dotfiles} &>/dev/null
+git submodule update --init --recursive
+
+popd &>/dev/null
