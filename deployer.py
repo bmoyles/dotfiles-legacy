@@ -33,17 +33,17 @@ logging.basicConfig(level=logging.INFO, format=log_format)
 
 
 def add_dotrc():
-    log.info('Configuring dotfiles location ({}) in dotrc ({})'.format(script_path, dotfiles_config))
+    log.info('Configuring dotfiles location ({0}) in dotrc ({1})'.format(script_path, dotfiles_config))
     if os.path.exists(dotfiles_config):
-        log.warn('File exists: {}, overwriting'.format(dotfiles_config))
+        log.warn('File exists: {0}, overwriting'.format(dotfiles_config))
     with open(dotfiles_config, 'w') as dotrc:
-        dotrc.write('DOTFILES="{}"\n'.format(script_path))
+        dotrc.write('DOTFILES="{0}"\n'.format(script_path))
 
 
 def remove_dotrc():
-    log.info('Removing dotfiles configuration file ({})'.format(dotfiles_config))
+    log.info('Removing dotfiles configuration file ({0})'.format(dotfiles_config))
     if not os.path.exists(dotfiles_config):
-        log.info('Dotfiles configuration file {} not found'.format(dotfiles_config))
+        log.info('Dotfiles configuration file {0} not found'.format(dotfiles_config))
         return
     os.remove(dotfiles_config)
 
@@ -57,7 +57,7 @@ def platform_link_excludes():
     """
     other_platforms = set(platform_links.keys()) - set(sys.platform)
     excludes = set([exclusion for platform in other_platforms for exclusion in platform_links[platform]])
-    log.info('Detected platform: {}. Not linking: {}'.format(sys.platform, str(excludes)))
+    log.info('Detected platform: {0}. Not linking: {1}'.format(sys.platform, str(excludes)))
     return excludes
 
 
@@ -81,7 +81,7 @@ def backup(path=None):
     if path is None:
         return
     backup_path = path + backup_extension
-    log.info("Backing up {} to {}".format(path, backup_path))
+    log.info("Backing up {0} to {1}".format(path, backup_path))
     if os.path.exists(backup_path):
         log.info("Clobbering old backup")
         if os.path.isdir(backup_path):
@@ -94,22 +94,22 @@ def backup(path=None):
 def install(links, main_args, *args, **kwargs):
     log.info("Executing install action")
     for link in links:
-        log.info("Processing link: {}".format(link))
+        log.info("Processing link: {0}".format(link))
         destfile = "." + os.path.basename(link).rstrip(link_extension)
         dest = os.path.join(target_path, destfile)
         if os.path.exists(dest):
-            log.info("Destination exists: {}".format(dest))
+            log.info("Destination exists: {0}".format(dest))
             if main_args.backup:
                 backup(dest)
             else:
-                log.info("Removing existing {}".format(dest))
+                log.info("Removing existing {0}".format(dest))
                 if os.path.isdir(dest) and not os.path.islink(dest):
-                    log.info("Recursivly removing {}".format(dest))
+                    log.info("Recursivly removing {0}".format(dest))
                     shutil.rmtree(dest, ignore_errors=True)
                 else:
-                    log.info("Removing file or symlink {}".format(dest))
+                    log.info("Removing file or symlink {0}".format(dest))
                     os.remove(dest)
-        log.info("Symlinking {} to {}".format(link, dest))
+        log.info("Symlinking {0} to {0}".format(link, dest))
         os.symlink(link, dest)
     add_dotrc()
 
@@ -118,14 +118,14 @@ def uninstall(links, main_args, *args, **kwargs):
     log.info("Executing uninstall action")
     files = ["." + os.path.basename(link).rstrip(link_extension) for link in links]
     for filename in files:
-        log.info("Processing file: {}".format(filename))
+        log.info("Processing file: {0}".format(filename))
         filename = os.path.join(target_path, filename)
         backup = filename + backup_extension
         if os.path.islink(filename):
-            log.info("File {} is symlink, removing".format(filename))
+            log.info("File {0} is symlink, removing".format(filename))
             os.remove(filename)
         if os.path.exists(backup) and not(os.path.exists(filename)):
-            log.info("Backup {} found, moving to {}".format(backup, filename))
+            log.info("Backup {0} found, moving to {1}".format(backup, filename))
             os.rename(backup, filename)
     remove_dotrc()
 
