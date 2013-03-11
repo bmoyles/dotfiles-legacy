@@ -39,6 +39,8 @@ function +vi-git-remotebranch() {
 
 zstyle ':vcs_info:git*' formats \
     " %B%F{blue}%s(%f%F{green}%r[%f%F{red}%b:%m %u%c%f%F{green}]%f%F{blue})%f%%b"
+zstyle ':vcs_info:git*' actionformats \
+    " %B%F{blue}%s(%f%F{green}%r[%f%F{red}%b|%a:%m %u%c%f%F{green}]%f%F{blue})%f%%b"
 add-zsh-hook precmd vcs_info
 
 PROMPT="
