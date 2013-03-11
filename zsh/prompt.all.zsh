@@ -7,7 +7,6 @@ zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git*' check-for-changes true
 zstyle ':vcs_info:git*' unstagedstr '%B%F{yellow}☻%f%b '
 zstyle ':vcs_info:git*' stagedstr '%B%F{green}☻%f%b '
-zstyle ':vcs_info:git*+set-message:*' hooks git-st
 function +vi-git-st() {
     local ahead behind
     local -a gitstatus
@@ -15,16 +14,15 @@ function +vi-git-st() {
     # for git prior to 1.7
     # ahead=$(git rev-list origin/${hook_com[branch]}..HEAD | wc -l)
     ahead=$(git rev-list ${hook_com[branch]}@{upstream}..HEAD 2>/dev/null | wc -l)
-    (( $ahead )) && gitstatus+=( "↑${ahead}" )
+    (( $ahead )) && gitstatus+=( "%F{magenta}↑${ahead//[[:space:]]/}%f" )
 
     # for git prior to 1.7
     # behind=$(git rev-list HEAD..origin/${hook_com[branch]} | wc -l)
     behind=$(git rev-list HEAD..${hook_com[branch]}@{upstream} 2>/dev/null | wc -l)
-    (( $behind )) && gitstatus+=( "↓${behind}" )
+    (( $behind )) && gitstatus+=( "%F{magenta}↓${behind//[[:space:]]/}%f" )
 
     hook_com[misc]+=${(j:/:)gitstatus}
 }
-zstyle ':vcs_info:git*+set-message:*' hooks git-remotebranch
 function +vi-git-remotebranch() {
     local remote
 
@@ -36,6 +34,7 @@ function +vi-git-remotebranch() {
         hook_com[branch]="${hook_com[branch]}<${remote}>"
     fi
 }
+zstyle ':vcs_info:git*+set-message:*' hooks git-st git-remotebranch
 
 zstyle ':vcs_info:git*' formats \
     " %B%F{blue}%s(%f%F{green}%r[%f%F{red}%b:%m %u%c%f%F{green}]%f%F{blue})%f%%b"
