@@ -17,3 +17,5 @@ setopt hist_verify
 setopt prompt_subst
 
 setopt nobeep
+
+autoload -U add-zsh-hook
