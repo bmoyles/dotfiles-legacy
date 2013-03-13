@@ -1,8 +1,8 @@
 set -g default-terminal "screen-256color"
-#set -g terminal-overrides 'xterm*:smcup@:rmcup@'
+set -g terminal-overrides 'xterm*:smcup@:rmcup@'
 set -g history-limit 10000
 set -sg escape-time 0
-#set -g alternate-screen off
+set -g alternate-screen off
 
 unbind C-b
 set -g prefix C-a
@@ -31,10 +31,7 @@ bind = \
   swap-pane -s tmux-zoom.0 \;\
   kill-window -t tmux-zoom
 
-setw -g mode-mouse on
-set -g mouse-resize-pane on
-set -g mouse-select-pane on
-set -g mouse-select-window on
+setw -g mode-mouse off
 setw -g automatic-rename off
 set -g update-environment -r
 
