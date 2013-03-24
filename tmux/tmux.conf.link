@@ -36,9 +36,12 @@ setw -g automatic-rename off
 set -g update-environment -r
 
 setw -g window-status-current-bg red
-set -g status-bg black
+setw -g window-status-current-fg "#000000"
+setw -g window-status-fg white
+setw -g window-status-bg '#303030'
+set -g status-bg '#303030'
 set -g status-fg white
 set -g status-justify right
 set -g status-left-length 40
-set -g status-left "#[fg=white,bold](#[fg=yellow,nobold]#h#[fg=white,bold])(#[fg=green,nobold]#S#[fg=white,bold])"
+set -g status-left "#[bg=#00cc00]#[fg=#000000] #h #[bg=#0087af]#[fg=#000000] #S "
 set -g status-right ""
