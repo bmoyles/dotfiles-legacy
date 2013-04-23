@@ -31,7 +31,7 @@ bind = \
   swap-pane -s tmux-zoom.0 \;\
   kill-window -t tmux-zoom
 
-setw -g mode-mouse off
+setw -g mode-mouse on
 setw -g automatic-rename off
 set -g update-environment -r
 
