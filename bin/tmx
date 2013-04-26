@@ -1,5 +1,8 @@
 #!/bin/bash
 
+PATH=/usr/local/bin:/usr/bin:/bin
+DOTFILES=${DOTFILES:-~/.dotfiles}
+
 tmux_home=${DOTFILES}/tmux
 
 create_or_attach() {
