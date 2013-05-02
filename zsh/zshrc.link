@@ -1,8 +1,8 @@
 export DOTRC=${HOME}/.dotrc
-[[ -e "${DOTRC}" ]] && source ${DOTRC}
+[[ -s "${DOTRC}" ]] && source ${DOTRC}
 export DOTFILES=${DOTFILES:-${HOME}/.dotfiles}
 export DOTLOCAL=${HOME}/.local
-[[ ! -e ${DOTLOCAL} ]] && mkdir -p ${DOTLOCAL}
+[[ ! -d ${DOTLOCAL} ]] && mkdir -p ${DOTLOCAL}
 export ZSH=${DOTFILES}/zsh
 
 # provides a distribution-specific configuration hierarchy
@@ -21,20 +21,26 @@ if [[ ${OS} == "Linux" ]]; then
         DISTRO="deb"
     fi
 fi
-flavors=( all ${OS:+${OS}} ${DISTRO:+${DISTRO}} )
 
-configs=( config env path )
+local flavors=( all ${OS:+${OS}} ${DISTRO:+${DISTRO}} )
+local configs=( config env path )
+local config
 for config in ${ZSH}/${^configs}.${^flavors}.zsh(N) ;do
     source ${config}
 done
 
 if [[ -o interactive ]] ;then
-    int_configs=( prompt aliases funcs comp zle )
+    local int_configs=( prompt aliases funcs comp zle )
     for config in ${ZSH}/${^int_configs}.${^flavors}.zsh(N) ;do
         source ${config}
     done
 fi
 
-[[ -e ${DOTLOCAL}/zshrc ]] && source ${DOTLOCAL}/zshrc
+local local_configs=( commonrc zshrc )
+for config in ${ZSH}/${^local_configs}(N) ;do
+    source ${config}
+done
+
+unset flavors configs config int_configs local_configs
 
 # vim: filetype=zsh:ts=4:sw=4:expandtab

@@ -1,6 +1,24 @@
-P_USER_AT="%B(%b%(!.%F{red}%U.%F{blue})%n%(!.%u.)%f%B@%b%F{yellow}%m%f%B)%b"
-P_CURDIR="%B(%b%F{green}%~%f%B)%b"
-P_TIME="%B(%b%F{magenta}%D{%a %Y-%m-%d}%f %F{cyan}%D{%r}%f%B)%b"
+local P_USER_AT="%B(%b%(!.%F{red}%U.%F{blue})%n%(!.%u.)%f%B@%b%F{yellow}%m%f%B)%b"
+local P_CURDIR="%B(%b%F{green}%~%f%B)%b"
+local P_TIME="%B(%b%F{magenta}%D{%a %Y-%m-%d}%f %F{cyan}%D{%r}%f%B)%b"
+
+function prompt_aws_context() {
+    if [[ -n ${AWS_DEFAULT_REGION} ]] && [[ -e ${AWS_CONFIG_FILE} ]]
+    then
+        local aws_promptstring
+        aws_promptstring='%B%F{green}aws(%f%b'
+        aws_promptstring="${aws_promptstring}%F{red}\${AWS_CONFIG_FILE:t}%f"
+        aws_promptstring="${aws_promptstring}%B@%b"
+        aws_promptstring="${aws_promptstring}%F{yellow}\${AWS_DEFAULT_REGION}%f"
+        aws_promptstring="${aws_promptstring}%B%F{green})%f%b"
+        export P_AWS_CONTEXT=${aws_promptstring}
+        unset aws_promptstring
+    else
+        unset P_AWS_CONTEXT
+        unset aws_promptstring
+    fi
+}
+add-zsh-hook precmd prompt_aws_context
 
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git
@@ -43,7 +61,7 @@ zstyle ':vcs_info:git*' actionformats \
 add-zsh-hook precmd vcs_info
 
 PROMPT="
-${P_TIME}
+${P_TIME}${P_AWS_CONTEXT}
 ${P_CURDIR}\${vcs_info_msg_0_}
 %# "
 RPROMPT="${P_USER_AT}"
