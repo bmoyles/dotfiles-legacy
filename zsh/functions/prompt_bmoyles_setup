@@ -1,0 +1,131 @@
+prompt_bmoyles_setup() {
+    setopt noxtrace localoptions
+
+    autoload -Uz add-zsh-hook
+
+    zstyle -m ":prompt:bmoyles" user_at '*' ||
+        zstyle ":prompt:bmoyles" user_at '%B(%b%(!.%F{red}%U.%F{blue})%n%(!.%u.)%f%B@%b%F{yellow}%m%f%B)%b'
+    zstyle -m ":prompt:bmoyles" curdir '*' ||
+        zstyle ":prompt:bmoyles" curdir '%B(%b%F{green}%~%f%B)%b'
+    zstyle -m ":prompt:bmoyles" curtime '*' ||
+        zstyle ":prompt:bmoyles" curtime '%B(%b%F{magenta}%D{%a %Y-%m-%d}%f %F{cyan}%D{%r}%f%B)%b'
+    zstyle -m ":prompt:bmoyles:aws" account '*' ||
+        zstyle ":prompt:bmoyles:aws" account '%F{red}%A%f'
+    zstyle -m ":prompt:bmoyles:aws" region '*' ||
+        zstyle ":prompt:bmoyles:aws" region '%F{yellow}%R%f'
+    zstyle -m ":prompt:bmoyles:aws" format '*' ||
+        zstyle ":prompt:bmoyles:aws" format '%B%F{green}aws(%f%b%A@%R%B%F{green})%f%b'
+    zstyle -m ":prompt:bmoyles" prompt '*' ||
+        zstyle ":prompt:bmoyles" prompt "
+%t
+%c%V
+%# "
+    zstyle -m ":prompt:bmoyles" rprompt '*' ||
+        zstyle ":prompt:bmoyles" rprompt "%a %u"
+
+    prompt_bmoyles_vcs
+
+    add-zsh-hook precmd prompt_bmoyles_precmd
+    add-zsh-hook preexec prompt_bmoyles_preexec
+}
+
+prompt_bmoyles_precmd() {
+    setopt noxtrace localoptions
+    local tmp
+    local -A promptvars
+
+    vcs_info
+
+    zstyle -s ":prompt:bmoyles" user_at tmp
+    promptvars[user_at]=${tmp}
+    zstyle -s ":prompt:bmoyles" curdir tmp
+    promptvars[curdir]=${tmp}
+    zstyle -s ":prompt:bmoyles" curtime tmp
+    promptvars[curtime]=${tmp}
+
+    if [[ -n ${AWS_CONFIG_FILE} ]] && [[ -n ${AWS_DEFAULT_REGION} ]]; then
+        local awstmp
+        zstyle -s ':prompt:bmoyles:aws' account tmp
+        zformat -f awstmp ${tmp} A:${AWS_CONFIG_FILE:t}
+        promptvars[aws_account]=${awstmp}
+        zstyle -s ':prompt:bmoyles:aws' region tmp
+        zformat -f awstmp ${tmp} R:${AWS_DEFAULT_REGION}
+        promptvars[aws_region]=${awstmp}
+        zstyle -s ':prompt:bmoyles:aws' format tmp
+        zformat -f awstmp ${tmp} \
+            A:${promptvars[aws_account]} \
+            R:${promptvars[aws_region]}
+        promptvars[aws]=${awstmp}
+    else
+        promptvars[aws_account]=''
+        promptvars[aws_region]=''
+        promptvars[aws]=''
+    fi
+
+    zstyle -s ":prompt:bmoyles" prompt tmp
+    zformat -f tmp ${tmp} \
+        t:${promptvars[curtime]} \
+        a:${promptvars[aws]} \
+        c:${promptvars[curdir]} \
+        u:${promptvars[user_at]} \
+        V:${vcs_info_msg_0_}
+    PROMPT="${tmp}"
+    zstyle -s ":prompt:bmoyles" rprompt tmp
+    zformat -f tmp ${tmp} \
+        t:${promptvars[curtime]} \
+        a:${promptvars[aws]} \
+        c:${promptvars[curdir]} \
+        u:${promptvars[user_at]} \
+        V:${vcs_info_msg_0_}
+    RPROMPT="${tmp}"
+}
+
+prompt_bmoyles_preexec() {
+    setopt noxtrace localoptions
+}
+
+prompt_bmoyles_vcs() {
+    autoload -Uz vcs_info
+    zstyle ':vcs_info:*' enable git
+    zstyle ':vcs_info:git*' check-for-changes true
+    zstyle ':vcs_info:git*' unstagedstr '%B%F{yellow}☻%f%b '
+    zstyle ':vcs_info:git*' stagedstr '%B%F{green}☻%f%b '
+    zstyle ':vcs_info:git*+set-message:*' hooks git-st git-remotebranch
+    zstyle ':vcs_info:git*' formats \
+        " %B%F{blue}%s(%f%F{green}%r[%f%F{red}%b:%m %u%c%f%F{green}]%f%F{blue})%f%%b"
+    zstyle ':vcs_info:git*' actionformats \
+        " %B%F{blue}%s(%f%F{green}%r[%f%F{red}%b|%a:%m %u%c%f%F{green}]%f%F{blue})%f%%b"
+
+    function +vi-git-st() {
+        local ahead behind
+        local -a gitstatus
+
+        # for git prior to 1.7
+        # ahead=$(git rev-list origin/${hook_com[branch]}..HEAD | wc -l)
+        ahead=$(git rev-list ${hook_com[branch]}@{upstream}..HEAD 2>/dev/null | wc -l)
+        (( $ahead )) && gitstatus+=( "%F{magenta}↑${ahead//[[:space:]]/}%f" )
+
+        # for git prior to 1.7
+        # behind=$(git rev-list HEAD..origin/${hook_com[branch]} | wc -l)
+        behind=$(git rev-list HEAD..${hook_com[branch]}@{upstream} 2>/dev/null | wc -l)
+        (( $behind )) && gitstatus+=( "%F{magenta}↓${behind//[[:space:]]/}%f" )
+
+        hook_com[misc]+=${(j:/:)gitstatus}
+    }
+
+    function +vi-git-remotebranch() {
+        local remote
+
+        # Are we on a remote-tracking branch?
+        remote=${$(git rev-parse --verify ${hook_com[branch]}@{upstream} \
+            --symbolic-full-name 2>/dev/null)/refs\/remotes\/}
+
+        if [[ -n ${remote} ]] ; then
+            hook_com[branch]="${hook_com[branch]}<${remote}>"
+        fi
+    }
+}
+
+prompt_bmoyles_setup
+
+# vim: ft=zsh sw=4 sts=4 ts=4 expandtab

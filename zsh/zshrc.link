@@ -1,46 +1,56 @@
-export DOTRC=${HOME}/.dotrc
-[[ -s "${DOTRC}" ]] && source ${DOTRC}
-export DOTFILES=${DOTFILES:-${HOME}/.dotfiles}
-export DOTLOCAL=${HOME}/.local
-[[ ! -d ${DOTLOCAL} ]] && mkdir -p ${DOTLOCAL}
-export ZSH=${DOTFILES}/zsh
+main() {
+    export DOTRC=${HOME}/.dotrc
+    [[ -s "${DOTRC}" ]] && source ${DOTRC}
+    export DOTFILES=${DOTFILES:-${HOME}/.dotfiles}
+    export DOTLOCAL=${HOME}/.local
+    [[ ! -d ${DOTLOCAL} ]] && mkdir -p ${DOTLOCAL}
+    export ZSH=${DOTFILES}/zsh
 
-# provides a distribution-specific configuration hierarchy
-# (some things are common across platforms, some are Linux-specific,
-# some Mac-specific, some maybe even RHEL-alike- or Debian-alike-specific)
-# config.all.(sh|bash|zsh) == commonly sourced
-# config.$OS.(sh|bash|zsh) == commonly sourced by OS
-# config.$OS.$DISTRO.(sh|bash|zsh) == commonly sourced by distro (to deal with Linux distro differences)
-OS=$(uname -s)
-if [[ ${OS} == "Linux" ]]; then
-    if [[ -e /etc/redhat-release ]]; then
-        # redhat-derived (incl. CentOS)
-        DISTRO="rh"
-    elif [[ -e /etc/debian_version ]]; then
-        # debian-derived (incl. Ubuntu)
-        DISTRO="deb"
+    # provides a distribution-specific configuration hierarchy
+    # (some things are common across platforms, some are Linux-specific,
+    # some Mac-specific, some maybe even RHEL-alike- or Debian-alike-specific)
+    # config.all.(sh|bash|zsh) == commonly sourced
+    # config.$os.(sh|bash|zsh) == commonly sourced by os
+    # config.$os.$distro.(sh|bash|zsh) == commonly sourced by distro (to deal with Linux distro differences)
+    local os
+    local distro
+    os=$(uname -s)
+    if [[ ${os} == "Linux" ]]; then
+        if [[ -e /etc/redhat-release ]]; then
+            # redhat-derived (incl. Centos)
+            distro="rh"
+        elif [[ -e /etc/debian_version ]]; then
+            # debian-derived (incl. Ubuntu)
+            distro="deb"
+        fi
     fi
-fi
 
-local flavors=( all ${OS:+${OS}} ${DISTRO:+${DISTRO}} )
-local configs=( config env path )
-local config
-for config in ${ZSH}/${^configs}.${^flavors}.zsh(N) ;do
-    source ${config}
-done
-
-if [[ -o interactive ]] ;then
-    local int_configs=( prompt aliases funcs comp zle )
-    for config in ${ZSH}/${^int_configs}.${^flavors}.zsh(N) ;do
+    local -a flavors
+    flavors=( all ${os:+${os}} ${distro:+${distro}} )
+    local -a configs
+    configs=( config env path )
+    local config
+    for config in ${ZSH}/${^configs}.${^flavors}.zsh(N) ;do
         source ${config}
     done
-fi
 
-local local_configs=( commonrc zshrc )
-for config in ${ZSH}/${^local_configs}(N) ;do
-    source ${config}
-done
+    # obvious, but these only get used in an interactive shell
+    if [[ -o interactive ]] ;then
+        local -a int_configs
+        int_configs=( funcs prompt aliases comp zle )
+        for config in ${ZSH}/${^int_configs}.${^flavors}.zsh(N) ;do
+            source ${config}
+        done
+    fi
 
-unset flavors configs config int_configs local_configs
+    # local machine-specific configs (unversioned, secret foo can go here)
+    # hierarchy is established for worlds where I have to swap between shells
+    local -a local_configs
+    local_configs=( commonrc zshrc )
+    for config in ${DOTLOCAL}/${^local_configs}(N) ;do
+        source ${config}
+    done
+}
+main
 
 # vim: filetype=zsh:ts=4:sw=4:expandtab

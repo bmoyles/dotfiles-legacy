@@ -1,7 +1,6 @@
-typeset -U fpath
-my_fpaths=( ${ZSH}/functions(N) ${ZSH}/functions/*(/N) )
-fpath=( ${my_fpaths} ${fpath} )
-for func in ${^my_fpaths}/*(.N)
+typeset -Ux fpath
+fpath=( ${ZSH}/functions(N) ${ZSH}/functions/*(/N) ${fpath})
+for funcpath in ${^fpath}/*(.N)
 do
-    autoload -U ${funcpath}(:t)
+    autoload -Uz ${funcpath}(:t)
 done
